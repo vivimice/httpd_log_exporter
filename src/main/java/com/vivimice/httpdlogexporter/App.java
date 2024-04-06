@@ -46,13 +46,15 @@ public class App {
 
     private void start() {
         installCommonMeters();
-        startMetricServer();
+        var server = startMetricServer();
 
         try {
             consumeLogs();
         } catch (IOException ex) {
             // expected
             return;
+        } finally {
+            server.stop();
         }
     }
 
@@ -77,9 +79,9 @@ public class App {
             .register();
     }
 
-    private void startMetricServer() {
+    private HTTPServer startMetricServer() {
         try {
-            HTTPServer.builder()
+            return HTTPServer.builder()
                 .port(context.getPort())
                 .buildAndStart();
         } catch (IOException ex) {
