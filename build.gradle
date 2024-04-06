@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'org.graalvm.buildtools.native' version '0.10.1'
+}
+
+repositories {
+    maven {
+        url "https://maven.aliyun.com/repository/central"
+    }
+}
+
+dependencies {
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+    implementation 'io.prometheus:prometheus-metrics-core:1.0.0'
+    implementation 'io.prometheus:prometheus-metrics-instrumentation-jvm:1.0.0'
+    implementation 'io.prometheus:prometheus-metrics-exporter-httpserver:1.0.0'
+    testImplementation 'junit:junit:4.13'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+test {
+    useJUnit()
+}
+
+graalvmNative {
+    toolchainDetection = true
+    binaries {
+        main {
+            imageName = "httpd_log_exporter"
+            mainClass = "com.vivimice.httpdlogexporter.App"
+            buildArgs.add("-O4")
+        }
+        test {
+            buildArgs.add("-O0")
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
+    }
+}
