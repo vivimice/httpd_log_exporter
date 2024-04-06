@@ -71,6 +71,7 @@ public class CombinedLogParser {
     @Nonnull
     public static CombinedLogParser of(String format) {
         var patternBuilder = new StringBuilder();
+        patternBuilder.append("^");
         var fieldGroupMap = new HashMap<String, Integer>();
         var matcher = fieldPattern.matcher(format);
         var pos = 0;
@@ -88,12 +89,44 @@ public class CombinedLogParser {
 
             String name = matcher.group(1);
             fieldGroupMap.put(name, group++);
-            patternBuilder.append("(.+?)");
+            patternBuilder.append("(" + getFieldPattern(name) + ")");
 
             pos = matcher.end();
         }
+        patternBuilder.append("$");
 
         return new CombinedLogParser(Pattern.compile(patternBuilder.toString()), fieldGroupMap);
+    }
+
+    private static String getFieldPattern(String fieldName) {
+        switch (fieldName) {
+            case "t":
+                return "\\[\\d{2}/.{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2} \\+\\d{4}\\]";
+            case "%":
+                return "%";
+            case "a":
+            case "A":
+            case "H":
+            case "L":
+            case "q":
+                return "\\S+";
+            case "b":
+                return "\\d+|-";
+            case "B":
+            case "D":
+            case "k":
+            case "m":
+            case "p":
+            case "P":
+            case "s":
+            case ">s":
+            case "I":
+            case "O":
+            case "S":
+                return "\\d+";
+            default:
+                return ".+?";
+        }
     }
 
     private static void appendLiteral(

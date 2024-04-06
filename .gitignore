@@ -7,3 +7,5 @@ build
 # Ignore build and install script
 build.sh
 install.sh
+
+.vscode

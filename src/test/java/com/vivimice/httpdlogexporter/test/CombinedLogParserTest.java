@@ -14,6 +14,20 @@ public class CombinedLogParserTest {
     @Test
     public void test() {
         runTest(
+            "%t %u %>s %I %B %D \\\"%U\\\"",
+            "[06/Apr/2024:17:00:45 +0800] alice 200 441 856 5010160 \"/foo/bar/baz\"",
+            new HashMap<String, String>() {{
+                put("t", "[06/Apr/2024:17:00:45 +0800]");
+                put("u", "alice");
+                put(">s", "200");
+                put("I", "441");
+                put("B", "856");
+                put("D", "5010160");
+                put("U", "/foo/bar/baz");
+            }}
+        );
+
+        runTest(
             "%h %l %u %t",
             "192.168.201.2 - alice [06/Apr/2024:11:28:58 +0800]",
             new HashMap<String, String>() {{
