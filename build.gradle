@@ -14,6 +14,7 @@ dependencies {
     implementation 'io.prometheus:prometheus-metrics-core:1.0.0'
     implementation 'io.prometheus:prometheus-metrics-instrumentation-jvm:1.0.0'
     implementation 'io.prometheus:prometheus-metrics-exporter-httpserver:1.0.0'
+    implementation 'commons-io:commons-io:2.16.0'
     testImplementation 'junit:junit:4.13'
 }
 

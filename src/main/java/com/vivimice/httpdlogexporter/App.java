@@ -15,14 +15,15 @@
  */
 package com.vivimice.httpdlogexporter;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListenerAdapter;
 
 import io.prometheus.metrics.core.metrics.Counter;
 import io.prometheus.metrics.core.metrics.GaugeWithCallback;
@@ -31,31 +32,28 @@ import jakarta.annotation.Nonnull;
 
 public class App {
 
-    @Nonnull
-    private final AppContext context;
-
-    private volatile long lastLogProcessedAt = 0;
-
     private static final Counter processErrorCounter = Counter.builder()
         .name("httpd_log_process_error_count_total")
         .register();
+    @Nonnull
+    private final AppContext context;
+    private volatile long lastLogProcessedAt = 0;
+    private HTTPServer server;
+    private Thread tailerThread;
 
     private App(@Nonnull AppContext context) {
         this.context = context;
     }
 
-    private void start() {
+    private void run() {
         installCommonMeters();
-        var server = startMetricServer();
+        startMetricServer();
+        runTailer();
+    }
 
-        try {
-            consumeLogs();
-        } catch (IOException ex) {
-            // expected
-            return;
-        } finally {
-            server.stop();
-        }
+    private void join() throws InterruptedException {
+        tailerThread.join();
+        server.stop();
     }
 
     private void installCommonMeters() {
@@ -79,9 +77,9 @@ public class App {
             .register();
     }
 
-    private HTTPServer startMetricServer() {
+    private void startMetricServer() {
         try {
-            return HTTPServer.builder()
+            server = HTTPServer.builder()
                 .port(context.getPort())
                 .buildAndStart();
         } catch (IOException ex) {
@@ -110,28 +108,35 @@ public class App {
         return parser;
     }
 
-    private void consumeLogs() throws IOException {
+    private void runTailer() {
         var parser = createParser();
 
-        var reader = new BufferedReader(new InputStreamReader(System.in));
-        while (true) {
-            var line = reader.readLine();
-            if (line == null) {
-                break;
-            }
+        var tailer = Tailer.builder()
+            .setFile(context.getFilePath())
+            .setReOpen(true)
+            .setTailFromEnd(true)
+            .setTailerListener(new TailerListenerAdapter() {
+                @Override
+                public void handle(String line) {
+                    try {
+                        processLogLine(parser, line);
+                    } catch (RuntimeException ex) {
+                        processErrorCounter.inc();
+                        System.err.println("Unhandled error while processing log line: " + line);
+                        ex.printStackTrace();
+                    }
+                }
+            })
+            .get();
 
-            try {
-                processLogLine(parser, line);
-            } catch (RuntimeException ex) {
-                processErrorCounter.inc();
-                System.err.println("Unhandled error while processing log line: " + line);
-                ex.printStackTrace();
-            }
-        }
+        tailer.run();
     }
 
     private void processLogLine(CombinedLogParser parser, String line) {
         var fieldMap = parser.parse(line);
+        if (fieldMap == null) {
+            return;
+        }
             
         String user = fieldMap.get("u");
         String path = fieldMap.get("U");
@@ -168,7 +173,7 @@ public class App {
         return func.apply(new String[] { user, path, status });
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             e.printStackTrace();
             System.err.print("Unhandled exception occured. Exit.");
@@ -179,8 +184,9 @@ public class App {
         parseArgs(context, args);
 
         var app = new App(context);
-        app.start();
-
+        app.run();
+        app.join();
+        
         System.out.println("Exit.");
     }
 
@@ -209,6 +215,12 @@ public class App {
                 context.setLogFormat(nextArg);
                 i++;
             }
+
+            if ("--file".equals(arg)) {
+                assertHasNext.run();
+                context.setFilePath(nextArg);
+                i++;
+            }
         }
 
         if (context.getLogFormat() == null) {
@@ -217,6 +229,10 @@ public class App {
 
         if (context.getPort() == 0) {
             die("port not specified.");
+        }
+
+        if (context.getFilePath() == null) {
+            die("file not specified.");
         }
     }
 
