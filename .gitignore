@@ -8,4 +8,4 @@ build
 build.sh
 install.sh
 
-.vscode
+.vscode/
