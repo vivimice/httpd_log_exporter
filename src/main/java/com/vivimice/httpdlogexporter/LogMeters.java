@@ -15,7 +15,7 @@ public class LogMeters {
         .register();
 
     public static final Counter receivedBytesCounter = Counter.builder()
-        .name("httpd_log_reveived_bytes_total")
+        .name("httpd_log_received_bytes_total")
         .labelNames("user", "path", "status")
         .register();
 
