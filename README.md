@@ -75,11 +75,11 @@ systemctl start httpd_log_exporter
 |-|-|-|-|
 |httpd_log_count_total|counter|`user`, `path`, `status`|The total numbers of requests monitored since startup|
 |httpd_log_time_seconds_total|counter|`user`, `path`, `status`|The total time taken, in seconds, to serve the request. See `%D` log format string.|
-|httpd_sent_bytes_total|counter|`user`, `path`, `status`|The total size of response, in bytes, excluding HTTP headers. See `%B` log format string.|
-|httpd_received_bytes_total|counter|`user`, `path`, `status`|The total size of request, in bytes, including request AND headers. See `%I` log format string.|
-|httpd_uptime_seconds|counter||The total seconds of elapsed since startup.|
-|httpd_idletime_seconds|gauge||The seconds elapsed since last log line processed.|
-|httpd_process_error_count_total|counter||The total number of log parse errors.|
+|httpd_log_sent_bytes_total|counter|`user`, `path`, `status`|The total size of response, in bytes, excluding HTTP headers. See `%B` log format string.|
+|httpd_log_received_bytes_total|counter|`user`, `path`, `status`|The total size of request, in bytes, including request AND headers. See `%I` log format string.|
+|httpd_log_uptime_seconds|counter||The total seconds of elapsed since startup.|
+|httpd_log_idletime_seconds|gauge||The seconds elapsed since last log line processed.|
+|httpd_log_process_error_count_total|counter||The total number of log parse errors.|
 
 # Install from source
 
