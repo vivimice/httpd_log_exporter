@@ -3,12 +3,6 @@ plugins {
     id 'org.graalvm.buildtools.native' version '0.10.1'
 }
 
-repositories {
-    maven {
-        url "https://maven.aliyun.com/repository/central"
-    }
-}
-
 dependencies {
     implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
     implementation 'io.prometheus:prometheus-metrics-core:1.0.0'
