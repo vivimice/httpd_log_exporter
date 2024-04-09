@@ -4,6 +4,12 @@ The httpd_log_exporter is a tool designed for reading Apache2 combined log files
 
 ## Quick Start
 
+### Download
+
+Download httpd_log_exporter in [Releases](releases).
+
+### Configuration
+
 You can set up your Apache2 httpd server with the following configuration:
 
 ```apache
