@@ -6,7 +6,7 @@ The httpd_log_exporter is a tool designed for reading Apache2 combined log files
 
 ### Download
 
-Download httpd_log_exporter in [Releases](releases).
+Download httpd_log_exporter in [Releases](https://github.com/vivimice/httpd_log_exporter/releases/latest).
 
 ### Configuration
 
